@@ -1,0 +1,12 @@
+<?php
+  //This function returns True if query string contains secretkey and secretvalue.
+  //Otherwise it returns False
+
+  function CheckAccess()
+
+  {
+    return @$_GET['word']=='LetMeIn!';
+
+  }
+
+?>
