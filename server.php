@@ -1,3 +1,4 @@
+<!doctype php>
 <?php
 // prevent the server from timing out
 set_time_limit(0);
@@ -30,26 +31,37 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 	if ($message === 'update')
 	{
 		//aqui hay que implementar in try catch, porque arrojo error una vez
-		$result = $mysqli->query("SELECT *  FROM HV_channels_test_1");
+		$result = $mysqli->query("SELECT *  FROM Preshower_PS_v1 order by mod_dir,ch_dir;");
     		while($row = $result->fetch_array(MYSQLI_NUM))
         	{
 		       $rows[] = $row;
-		              foreach ( $Server->wsClients as $id => $client )
-			      	if ( $id == $clientID )
-                      	       	      	$Server->wsSend($id, "mysql_update: $row[0] $row[1] $row[2] $row[3] $row[4] $row[5]");
-		}
+		       foreach ( $Server->wsClients as $id => $client )
+                       if ( $id == $clientID ){
+                            $Server->wsSend($id, "mysql_update: $row[0] , $row[1] $row[2] $row[3] $row[4] $row[5] $row[6]");
+                            
+                       }
+                }
+                $Server->wsSend($id, "time_update: ".time());
 	}
 	$tok = strtok($message," ");
         if ($tok === 'Vset')
 	{
 		$id = strtok(" ");
 		$voltage = strtok(" ");
-		$query = "UPDATE HV_channels_test_1 set Vset = $voltage where id = $id;";
+		$query = "UPDATE Preshower_PS_v1 set Vset = $voltage where id = $id;";
 //		printf($query);
                 $result = $mysqli->query($query);
 		
 	}
-		
+        if ($tok === 'enable')
+        {
+                $id = strtok(" ");
+                $onoff = strtok(" ");
+                $query = "UPDATE Preshower_PS_v1 set ch_en = $onoff where id = $id;";
+//              printf($query);
+                $result = $mysqli->query($query);
+        }
+
 }
 
 // when a client connects
@@ -116,6 +128,6 @@ $Server->bind('close', 'wsOnClose');
 $ifconfig = shell_exec('/sbin/ifconfig eth0');
 preg_match('/addr:([\d\.]+)/', $ifconfig, $match);
 $ip = $match[1];
-$Server->wsStartServer($ip, 9300);
+$Server->wsStartServer("raspberryps.local", 9300);
 
 ?>
